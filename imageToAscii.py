@@ -1,5 +1,6 @@
 from asyncio.windows_events import NULL
 from PIL import Image
+from sys import argv
 import os
 import cv2
 from time import sleep
@@ -10,7 +11,12 @@ init()
 # ASCII_CHARS = list("@#S%?*+;:,.")
 ASCII_CHARS = list(".,:;+*?%S$@")
 
-desired_width = 500
+try:
+    desired_width = int(argv[1])
+except:
+    print("No width specified. Using default width of 300")
+    desired_width = 300
+
 webcam_width = 300
 class colours:
     HEADER = '\033[95m'
@@ -232,7 +238,7 @@ def videoToAscii(new_width = desired_width):
 def webcamToAscii(new_width = webcam_width):
     cap = cv2.VideoCapture(0)
     success, cv2image = cap.read()
-    image = Image.fromarray(cv2image)
+    image = Image.fromarray(cv2image).transpose(Image.FLIP_LEFT_RIGHT)
     with open("log.txt", 'w') as log:
         print(round(get_ratio(image)), file=log)
     count = 0
@@ -245,7 +251,7 @@ def webcamToAscii(new_width = webcam_width):
     while success and not is_pressed('enter'):
         success, cv2image = cap.read()
         if success:
-            image = Image.fromarray(cv2image)
+            image = Image.fromarray(cv2image).transpose(Image.FLIP_LEFT_RIGHT)
         else: 
             break
         
@@ -282,4 +288,3 @@ def main():
         
         
 main()
-input()
