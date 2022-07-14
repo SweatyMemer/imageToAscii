@@ -5,6 +5,8 @@ Simple image to ascii conversion using python
 
 `git clone https://github.com/SweatyMemer/imageToAscii`
 
+`cd imageToAscii'
+
 `pip install -r requirements.txt`
 
 # Usage
