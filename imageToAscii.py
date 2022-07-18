@@ -1,13 +1,11 @@
 from asyncio.windows_events import NULL
-from csv import list_dialects
 from PIL import Image
 from sys import argv
 import os
 import cv2
-from time import sleep
-from colorama import Style, init, deinit, reinit, Fore
+from colorama import init, deinit, reinit, Fore
 from keyboard import is_pressed
-from datetime import datetime, timedelta
+from datetime import datetime
 init()
 # ASCII_CHARS = list("@#S%?*+;:,.")
 ASCII_CHARS = list(".,:;+*?%S$@")
