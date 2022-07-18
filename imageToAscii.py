@@ -1,4 +1,5 @@
 from asyncio.windows_events import NULL
+from csv import list_dialects
 from PIL import Image
 from sys import argv
 import os
@@ -10,12 +11,26 @@ from datetime import datetime, timedelta
 init()
 # ASCII_CHARS = list("@#S%?*+;:,.")
 ASCII_CHARS = list(".,:;+*?%S$@")
-
+f = NULL
 try:
     desired_width = int(argv[1])
 except:
     print("No width specified. Using default width of 300")
     desired_width = 300
+
+try:
+    if str(argv[2]) == "-o":
+        output_file = str(argv[3])
+        noPrint = False
+    elif str(argv[2]) == "-oN":
+        output_file = str(argv[2])
+        noPrint = True
+    else:
+        noPrint = False
+        
+except:
+    print("No output file specified. Printing to console")
+    noPrint = False
 
 webcam_width = 300
 class colours:
@@ -145,11 +160,11 @@ def pixels_to_ascii(image):
     characters = "".join([ASCII_CHARS[pixel//25] for pixel in pixels])
     return(characters)
 
-def imageToAscii(new_width = desired_width):
+def imageToAscii(path, new_width = desired_width, Print = True, output_file = NULL):
     
     #  print(str(round(new_width * 0.5625)) + " AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    list_Dir()
-    path = input("Path: ")
+    # list_Dir()
+    # path = input("Path: ")
 
     imageOpened = False
     while not imageOpened:
@@ -166,16 +181,15 @@ def imageToAscii(new_width = desired_width):
     pixel_count = len(new_image_data)
     ascii_image = "\n".join(new_image_data[i:(i+new_width)] for i in range(0, pixel_count, new_width))
 
-    changeFontSize(2)
-    terminalSize(new_width, round(new_width * get_ratio(image)))
-    
-
-    print(ascii_image)
-
-    with open("ascii_image_txt", 'w') as f:
-        f.write(ascii_image)
+    if Print:
+        changeFontSize(2)
+        terminalSize(new_width, round(new_width * get_ratio(image)))
+        print(ascii_image)
         
-    input()
+    if output_file != NULL:
+        with open(output_file, "a") as f:
+            f.write(ascii_image + "\n|\n")
+    
     terminalDefault()   
 
 def findFps(video):
@@ -189,9 +203,8 @@ def findFps(video):
         
     return(fps)
 
-def videoToAscii(new_width = desired_width):
-    list_Dir('CWD', ['mp4'])
-    path = input("Path: ")
+def videoToAscii(path, new_width = desired_width, Print = True, output_file = NULL):
+
 
     videoOpened = False
     while not videoOpened:
@@ -206,9 +219,14 @@ def videoToAscii(new_width = desired_width):
     image = Image.fromarray(cv2image)
     
     count = 0
-    changeFontSize(2)
-    terminalSize(new_width, round(new_width * get_ratio(image)))
-    deinit()
+    if Print:
+        changeFontSize(2)
+        terminalSize(new_width, round(new_width * get_ratio(image)))
+        deinit()
+    
+    if output_file != NULL:
+        f = open(output_file, 'w')
+    
     
     time1 = datetime.now()
     
@@ -219,18 +237,25 @@ def videoToAscii(new_width = desired_width):
         else: 
             break
         
-        print("Read a new frame: " + str(success))
+        # print("Read a new frame: " + str(success) + ", " + str(count))
+        print(f"Read a new frame: {success}, {count}")
         
         new_image_data = pixels_to_ascii(greyify(resize_image(image)))   
         pixel_count = len(new_image_data)
         ascii_image = "\n".join(new_image_data[i:(i+new_width)] for i in range(0, pixel_count, new_width))
         
-        print(ascii_image)
+        if Print:
+            print(ascii_image)
+        
+        if output_file != NULL:
+            f.write(ascii_image + "\n|\n")
+            
         count += 1
 
     time2 = datetime.now()
     elapsedTime = time2 - time1
-    terminalDefault()
+    if Print:
+        terminalDefault()
     reinit()
     print(f"Average of {colours.OKCYAN}{count/elapsedTime.total_seconds()}{colours.ENDC}fps over {colours.OKCYAN}{divmod(elapsedTime.total_seconds(), 60)[0]}{colours.ENDC} minutes and {colours.OKCYAN}{divmod(elapsedTime.total_seconds(), 60)[1]}{colours.ENDC} seconds")
     # os.mkdir("frames")
@@ -272,19 +297,26 @@ def webcamToAscii(new_width = webcam_width):
     # os.mkdir("frames")
     
 def main():
-    
+    print("main function called")
     prompt = f"1) {Fore.YELLOW}image to ascii{colours.ENDC}\n2) {Fore.YELLOW}video to ascii {colours.ENDC} \n3) {Fore.YELLOW}webcam to ascii {colours.ENDC}\n{colours.HEADER}=>{colours.ENDC}"
     print(prompt, end="")
     textIn = input()
     # textIn = input(prompt)
+    
     if textIn == "1":
-        imageToAscii()
+        list_Dir()
+        path = input("Path: ")
+        imageToAscii(path,desired_width,True,NULL)
         
     elif textIn == "2":
-        videoToAscii()
+        list_Dir('CWD', ['mp4'])
+        path = input("Path: ")
+        
+        videoToAscii(path, desired_width, True, NULL)
 
     elif textIn == "3":
         webcamToAscii()
         
-        
-main()
+if __name__ == "__main__":      
+    main()
+    input()
